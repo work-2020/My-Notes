@@ -123,6 +123,7 @@
   + locate 搜索文件或目录，locate命令要比find -name快得多，原因在于它不搜索具体目录，而是搜索一个数据库/var/lib/mlocate/mlocate.db。新增的文件无法locate，使用updatedb
   + which 使用which确定是否安装了某个软件，因为它只从PATH环境变量指定的目录搜索命令
   + find 不但可以通过文件类型、文件名进行查找而且可以根据文件的属性（如文件的时间戳，文件的权限等）进行搜索， find 的第一个参数是要搜索的地方。find [path] [option] [action]
+  	- `find -name 'filename'`
   
   
 ## 文件打包与压缩

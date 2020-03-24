@@ -79,7 +79,42 @@ Typora官网提供了Linux在线安装教程，十分复杂，更难过的是，
 2.	解压出来，随便放在某个目录下，可以看到文件夹里的Typora文件，将该文件所在的目录添加到环境变量PATH中。用vim在文件/etc/profile文件中增加变量，该变量将会对Linux下所有用户有效，并且是“永久的”。要让刚才的修改马上生效，需要执行以下代码 `source /etc/profile`
 3.	由于Typora在root权限下无法直接运行，需加上参数--no-sandbox，`Typora --no-sandbox`
 
+## 新版Kali没有owasp-zap工具
+1.	运行`apt-get update` 更新本地可用于升级本地软件的软件源列表
+2.	运行`apt-get upgrade` 更新本地全部软件包
+3.	运行`apt-get install zaproxy`下载安装owasp-zap，打开工具栏就能看到了
+
+## 安装Burp Suite Professional
+1.	下载Burp Suite Professional，下载链接 https://pan.baidu.com/s/1adX8-aTXVLltwdxGMINayw 提取码mhui，我放在了Downloads/目录下
+2.	解压 `unzip Burp_Suite_Pro_v1.7.37_Loader_Keygen.zip`，出现burp-loader-keygen.jar，burpsuite_pro_v1.7.37.jar 
+3.	查看自己java版本 `java -version`
+```bash
+root@kali:~/Downloads# java -version
+Picked up _JAVA_OPTIONS: -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true
+openjdk version "1.8.0_212"
+OpenJDK Runtime Environment (build 1.8.0_212-8u212-b01-1-b01)
+OpenJDK 64-Bit Server VM (build 25.212-b01, mixed mode)
+```
+4.	启动注册机`java -jar burp-loader-keygen.jar`，注册机启动起来，将注册机窗口向拉伸，可以看到按钮`RUN`，点击该按钮应该会启动Burp Suite Professional，若无反应，需降低java版本。
+5.	降低java版本，输入2
+```bash
+update-alternatives --config java
+There are 2 choices for the alternative java (providing /usr/bin/java).
+
+  Selection    Path                                            Priority   Status
+------------------------------------------------------------
+  0            /usr/lib/jvm/java-11-openjdk-amd64/bin/java      1111      auto mode
+  1            /usr/lib/jvm/java-11-openjdk-amd64/bin/java      1111      manual mode
+* 2            /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java   1081      manual mode
+
+Press <enter> to keep the current choice[*], or type selection number:
+```
+6.	重新执行第4条命令，启动Burp Suite Professional，点击accept，复制注册机中的license到Burp Suite Professional中，点击next-> manual activation->copy requests
+7.	复制到注册机activation request中，注册机activation response出现了内容，复制到Burp Suite Professional `paste response`中，再点击next，可以看到注册成功。
+8.	以后使用Burp Suite Professional的话，执行`java -jar burp-loader-keygen.jar`启动注册机，点击`run`即可启动Burp Suite Professional。
+
 # Kali侦察
+
 ## 使用nmap扫描识别服务
 
 1.  查看服务器是否响应Ping
@@ -247,3 +282,21 @@ HTTrack 创建站点的完整静态副本，这意味着所有动态内容，例
 +   `-rN` 将爬取链接的深度设置为N
 +   `-%eN` 设置外部链接的深度
 
+## 三、使用ZAP蜘蛛
+
+wget、httrack只是下载了站点完整的静态副本，但并没有服务器的请求与响应，zap蜘蛛可以获得上述信息。
+
+### 步骤
+
+1. 启动zap，设置浏览器代理，浏览http://192.168.2.167/bodgeit/
+2. 在sites标签页，打开http://192.168.2.167/文件夹，右键GET：bodgeit
+3. 选择attack -> spider，保留默认选项，点击start scan
+4. 结果出现在底部面板，可以查看每一个页面的请求和响应
+
+### 原理
+
+ZAP 的蜘蛛跟随它找到的每个链接,获取每个页面的请求和响应。此外,蜘蛛会跟随表单响应、重定向和包含在 robots.txt 和 sitemap.xml 文件中的URL。
+
+## 四、Burp Suite爬取站点
+
+Burp是应用最广泛的渗透测试的工具，Kali默认安装社区版本，目前Burp Suite Community 2.0移除了spider功能，Burp Suite Professional的安装教程见上文所述。
