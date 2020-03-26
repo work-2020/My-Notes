@@ -213,6 +213,7 @@
 
 ## 数据流重定向
 ### 简单的重定向
+
 - `echo 'hello world' > file1` 将echo的输出重定向到文件file1
 - `cat`默认使用标准输入作为命令的输入，标准输出作为命令的输出；`cat > file2 << EOF`用heredoc的方式进行输入，将cat的输出重定向到文件file2，heredoc是以>>EOF作为输入开始，以EOF作为输入结束
   ``` bash
