@@ -90,7 +90,11 @@ SQLMap 是个命令行工具，包含在 Kali 中，可以帮我们自动化检�
 
 `--dbms mysql` 指定数据库类型 
 
-`--cookie=""` 指定cookie，用于需要身份认证的情形。
+`--cookie=""` 指定cookie，用于需要身份认证的情形。用户登录后的SQL注入漏洞必须要指定cookie
+
+`-p`指定注入点
+
+`--skip` GET方法时排除参数
 
 在WebGoat | Injection | blind numberic sql injection中，sqlmap可以完美地解决http情形下的注入问题，对于https情形，sqlmap需要指定代理
 

