@@ -2,6 +2,35 @@
 
 # Kali安装
 
+## 更新源
+
+`vim /etc/apt/sources.list`
+
+```
+#中科大
+ deb http://mirrors.ustc.edu.cn/kali kali-rolling main non-free contrib
+ deb-src http://mirrors.ustc.edu.cn/kali kali-rolling main non-free contrib
+#阿里云
+ deb http://mirrors.aliyun.com/kali kali-rolling main non-free contrib
+ deb-src http://mirrors.aliyun.com/kali kali-rolling main non-free contrib
+```
+
+## 更新升级
+
+`apt-get update` 更新索引文件
+
+`apt-get upgrade` 更新升级软件包
+
+编辑更新源文件 /etc/apt/sources.list
+
+### 软件包
+
+smplayer stardict geany
+
+
+
+
+
 ## 下载并安装OWASP Broken Web Apps
 
 官方网站速度太慢，亲测迅雷链接http://sourceforge.mirrorservice.org/o/ow/owaspbwa/1.2/OWASP_Broken_Web_Apps_VM_1.2.7z 
@@ -1140,7 +1169,7 @@ ExploitDB是一个面向全世界黑客的漏洞提交平台，该平台会公�
    + `commands | Browser | Hooked Domain | Get Cookie`获取cookie
 
    + `social engineering | pretty theft` 社会工程工具，允许攻击者模拟Facebook、YouTube等应用登录页面，诱使受害者输入用户名/密码。
-    
+   
    + 打开摄像头
    
    + 提取浏览器中存储的用户名/口令

