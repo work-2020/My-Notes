@@ -1,4 +1,5 @@
 # Linux学习
+
 - `who am i` 查看用户名
 - `sudo adduser lilei` 添加用户lilei
 - `sudo useradd lilei` 只创建用户lilei，需要用`passwd lilei`设置用户密码
@@ -422,11 +423,11 @@ Linux大部分发行版都内置syslog系统日志，常见的日志一般存放
 
 + echo 'nameserver 8.8.8.8 >> /etc/resolv.conf'配置DNS服务器
 
-+ 上述操作在电脑重启后失效。修改网卡配置文件/etc/network/interface
++ 上述操作在电脑重启后失效。修改网卡配置文件/etc/network/interfaces
 
   ```
   auto eth0
-  iface eth0 inet static //静态ip
+  iface eth0 inet static //静态ip，动态改为dhcp
   address 192.168.20.1  //ip地址
   netmask 255.255.255.255  //子网掩码
   gateway 192.168.20.2  //网关
@@ -496,3 +497,24 @@ nc -vn 192.168.2.2 80
 一般防火墙拦截从外到内的数据，对从内向外的数据不做限制，所以使用反向shell。
 
 不同版本的nc的参数不尽相同，有的版本获取shell需使用`-e`
+
+## tmux 终端复用器
+
+**安装工具**
+
+在ubuntu系统中使用`sudo apt-get install tmux`安装tmux工具
+
+**使用工具**
+
+​    1，输入命令tmux使用工具
+
+​    2，上下分屏：ctrl + b 再按 "
+
+​    3，左右分屏：ctrl + b 再按 %
+
+​    4，切换屏幕：ctrl + b 再按o
+
+​    5，关闭一个终端：ctrl + b 再按x
+
+​    6，上下分屏与左右分屏切换： ctrl + b 再按空格键
+
