@@ -4,6 +4,12 @@
 
 后续重新安装时补上
 
++ Linux
+
+  网址：https://code.visualstudio.com/，下载deb安装文件，进入下载目录，`sudo dpkg -i code_1.47.3-1595520028_amd64.deb`，即安装成功。
+
+  插件选择：C/C++、C/C++ Clang Command Adapter、Code Runner、Bracket Pair Colorizer、Include Autocomplete
+
 ## 安装MinGW编译器
 
 后续重新安装时补上
