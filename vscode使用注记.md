@@ -66,6 +66,29 @@ launch.json中有很多属性可以设置, 通过智能提示查看有那些属�
 
 task.json文件中lable属性的值应改为与launch.json文件中preLaunchTask属性的值相同，在第二次测试时launch.json文件中preLaunchTask的属性采用默认值"C/C++: g++.exe build active file"，就无需再改动默认的task.json文件。
 
+```json
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "echo",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.o",
+            ]
+        }
+    ]
+}
+```
+
+
+
 ## 各种问题
 
 1. **include文件找不到**

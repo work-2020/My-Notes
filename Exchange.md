@@ -70,7 +70,7 @@ password spray同样是一种破解账户密码的方法，与常规的暴力破
 
 mailsniper提供分别针对OWA接口、EWS接口和ActiveSync接口的password spray。
 
-## 取得合法凭证后渗透
+## 四、取得合法凭证后渗透
 
 ### 4.1 滥用Outlook功能getshell
 
