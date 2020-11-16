@@ -154,17 +154,42 @@
   + `tar -xzf output.tar.gz -C dir` 使用 gzip 解压文件到dir文件夹中
   
 ## 文件系统操作与磁盘管理
-- $\color{red}{df}$
+- df
   + `df` 查看磁盘容量
   + `df -h` 以更易读的方式显示磁盘容量
-- $\color{red}{du}$
+- du
   + `du` 查看当前目录（及子目录）容量，或者在后面指定待查看的目录
   + `du -h` 以更易读的方式显示当前目录容量
   + `du -d 1` 指定查看目录的深度
   + `du -a` 同时显示目录中文件的大小
   + `du -s` 仅显示目录的总大小，不显示其子目录的信息
-  
+- dd 用指定大小的块拷贝一个文件，并在拷贝的同时进行指定的转换。
+  + if=文件名：输入文件名，缺省为标准输入。即指定源文件。< if=input file >
+  + of=文件名：输出文件名，缺省为标准输出。即指定目的文件。< of=output file >
+  + ibs=bytes：一次读入bytes个字节，即指定一个块大小为bytes个字节（缺省512）。
+  + obs=bytes：一次输出bytes个字节，即指定一个块大小为bytes个字节（缺省512）。
+  + bs=bytes：同时设置读入/输出的块大小为bytes个字节（缺省512）。
+  + cbs=bytes：一次转换bytes个字节，即指定转换缓冲区大小。
+  + skip=blocks：从输入文件开头跳过blocks个块后再开始复制。
+  + seek=blocks：从输出文件开头跳过blocks个块后再开始复制。
+    注意：通常只用当输出文件是磁盘或磁带时才有效，即备份到磁盘或磁带时才有效。
+  + count=blocks：仅拷贝blocks个块，块大小等于ibs指定的字节数。
+  + conv=conversion：用指定的参数转换文件。
+    - ascii：转换ebcdic为ascii
+    - ebcdic：转换ascii为ebcdic
+    - ibm：转换ascii为alternate ebcdic
+    - block：把每一行转换为长度为cbs，不足部分用空格填充
+    - unblock：使每一行的长度都为cbs，不足部分用空格填充
+    - lcase：把大写字符转换为小写字符
+    - ucase：把小写字符转换为大写字符
+    - swab：交换输入的每对字节
+    - noerror：出错时不停止
+    - notrunc：不截短输出文件
+    - sync：将每个输入块填充到ibs个字节，不足部分用空（NUL）字符补齐
+
+
 ## Linux帮助命令
+
 - 内建命令 实际上是 shell 程序的一部分，其中包含的是一些比较简单的 Linux 系统命令，这些命令是写在bash源码的builtins里面的，由 shell 程序识别并在 shell 程序内部完成运行，通常在 Linux 系统加载运行时 shell 就被加载并驻留在系统内存中。
 - 外部命令 Linux 系统中的实用程序部分，因为实用程序的功能通常都比较强大，所以其包含的程序量也会很大，在系统加载时并不随系统一起被加载到内存中，而是在需要时才将其调入内存。
 - `type cmd`查看命令cmd是内建命令还是外部命令
