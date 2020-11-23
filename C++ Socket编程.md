@@ -374,7 +374,7 @@ int main(){
 	bzero(&servaddr,sizeof(servaddr));
 
 	servaddr.sin_family = AF_INET;
-	if(inet_pton(AF_INET,"127.0.0.1",&servaddr.sin_addr)<0) printf("address error1\n");
+	if((AF_INET,"127.0.0.1",&servaddr.sin_addr)<0) printf("address error1\n");
 	//if(inet_pton(AF_INET,"192.168.116.158",&servaddr.sin_addr)<0) printf("address error1\n");
 	servaddr.sin_port = htons(2345);
 
